@@ -198,6 +198,26 @@
             font-weight: bold;
         }
 
+        .product-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .product-action {
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+
+        .delete-button {
+            background-color: #c0392b;
+        }
+
+        .delete-button:hover {
+            background-color: #e74c3c;
+        }
+
         .empty-message {
             margin: 0;
             text-align: center;
@@ -255,7 +275,7 @@
         <section id="registro" class="screen" aria-labelledby="register-title">
             <div class="content-box">
                 <h2 id="register-title">Registrar producto</h2>
-                <p>Los productos se guardan localmente en este navegador.</p>
+                <p id="form-intro">Los productos se guardan localmente en este navegador.</p>
 
                 <div id="form-message" class="message" role="status" aria-live="polite"></div>
 
@@ -280,7 +300,8 @@
 
                     <div class="section-actions">
                         <div class="button-group">
-                            <button type="submit">Guardar producto</button>
+                            <button id="save-product" type="submit">Guardar producto</button>
+                            <button id="cancel-edit" type="button" class="secondary-button" hidden>Cancelar edición</button>
                             <a class="button-link secondary-button" href="#productos">Ver productos</a>
                             <a class="button-link secondary-button" href="#inicio">Volver al inicio</a>
                         </div>
@@ -313,6 +334,11 @@
             const message = document.querySelector("#form-message");
             const productList = document.querySelector("#products-list");
             const productsCount = document.querySelector("#products-count");
+            const formTitle = document.querySelector("#register-title");
+            const formIntro = document.querySelector("#form-intro");
+            const saveButton = document.querySelector("#save-product");
+            const cancelEditButton = document.querySelector("#cancel-edit");
+            let editingProductId = null;
 
             // Esta capa se puede cambiar luego por Firebase, Supabase o Google Sheets.
             const repository = {
@@ -327,6 +353,16 @@
                 save(product) {
                     const products = this.getAll();
                     products.unshift(product);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+                },
+                update(id, changes) {
+                    const products = this.getAll().map((product) =>
+                        product.id === id ? { ...product, ...changes, updatedAt: new Date().toISOString() } : product
+                    );
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+                },
+                remove(id) {
+                    const products = this.getAll().filter((product) => product.id !== id);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
                 }
             };
@@ -365,7 +401,23 @@
                     price.className = "product-price";
                     price.textContent = formatPrice(product.price);
 
-                    item.append(name, description, price);
+                    const actions = document.createElement("div");
+                    actions.className = "product-actions";
+                    const editButton = document.createElement("button");
+                    editButton.type = "button";
+                    editButton.className = "product-action";
+                    editButton.dataset.action = "edit";
+                    editButton.dataset.id = product.id;
+                    editButton.textContent = "Editar";
+                    const deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.className = "product-action delete-button";
+                    deleteButton.dataset.action = "delete";
+                    deleteButton.dataset.id = product.id;
+                    deleteButton.textContent = "Eliminar";
+                    actions.append(editButton, deleteButton);
+
+                    item.append(name, description, price, actions);
                     productList.append(item);
                 });
             }
@@ -379,9 +431,38 @@
                 message.className = `message visible ${type}`;
             }
 
+            function resetEditMode() {
+                editingProductId = null;
+                formTitle.textContent = "Registrar producto";
+                formIntro.textContent = "Los productos se guardan localmente en este navegador.";
+                saveButton.textContent = "Guardar producto";
+                cancelEditButton.hidden = true;
+            }
+
+            function startEdit(id) {
+                const product = repository.getAll().find((item) => item.id === id);
+                if (!product) return;
+
+                editingProductId = id;
+                form.elements.name.value = product.name;
+                form.elements.description.value = product.description;
+                form.elements.price.value = product.price;
+                formTitle.textContent = "Editar producto";
+                formIntro.textContent = "Modifica los datos y guarda los cambios.";
+                saveButton.textContent = "Guardar cambios";
+                cancelEditButton.hidden = false;
+                window.location.hash = "#registro";
+                window.setTimeout(() => form.elements.name.focus(), 0);
+            }
+
             function navigate() {
                 const requestedScreen = window.location.hash.slice(1) || "inicio";
                 const screenId = document.getElementById(requestedScreen) ? requestedScreen : "inicio";
+
+                if (screenId !== "registro" && editingProductId) {
+                    form.reset();
+                    resetEditMode();
+                }
 
                 screens.forEach((screen) => {
                     screen.classList.toggle("active", screen.id === screenId);
@@ -420,18 +501,52 @@
                 }
 
                 try {
-                    repository.save({
-                        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+                    const productData = {
                         name,
                         description,
-                        price,
-                        createdAt: new Date().toISOString()
-                    });
+                        price
+                    };
+
+                    if (editingProductId) {
+                        repository.update(editingProductId, productData);
+                        showMessage("Producto actualizado correctamente.", "success");
+                    } else {
+                        repository.save({
+                            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+                            ...productData,
+                            createdAt: new Date().toISOString()
+                        });
+                        showMessage("Producto guardado correctamente.", "success");
+                    }
                     form.reset();
-                    showMessage("Producto guardado correctamente.", "success");
+                    resetEditMode();
                     renderProducts();
                 } catch {
                     showMessage("No pudimos guardar el producto en este navegador.", "error");
+                }
+            });
+
+            cancelEditButton.addEventListener("click", () => {
+                form.reset();
+                message.className = "message";
+                resetEditMode();
+                window.location.hash = "#productos";
+            });
+
+            productList.addEventListener("click", (event) => {
+                const actionButton = event.target.closest("button[data-action]");
+                if (!actionButton) return;
+
+                const { action, id } = actionButton.dataset;
+                if (action === "edit") {
+                    startEdit(id);
+                    return;
+                }
+
+                const product = repository.getAll().find((item) => item.id === id);
+                if (product && window.confirm(`¿Eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`)) {
+                    repository.remove(id);
+                    renderProducts();
                 }
             });
 
