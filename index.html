@@ -1,88 +1,188 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Cloud Computing</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e3f2fd;
-            color: #333;
-            text-align: center;
-            margin: 0;
-            padding-bottom: 50px;
-        }
-
-        .logo-container {
-            padding: 30px 0 10px 0;
-            display: flex;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .logo {
-            max-height: 80px;
-            width: auto;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-
-        h2 {
-            color: #34495e;
-            margin-top: 5px;
-            margin-bottom: 25px;
-        }
-
-        p {
-            font-size: 18px;
-            margin-bottom: 40px;
-            color: #444;
-        }
-
-        button {
-            background-color: #2980b9;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #3498db;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema local para registrar y consultar productos.">
+  <title>Cloud Computing | Productos</title>
+  <style>
+    :root {
+      --bg: #eaf1ff; --bg-deep: #b9cbed; --surface: rgba(255,255,255,.18);
+      --white: #fff; --navy: #143c7d; --navy-dark: #0f3065; --text: #102a55;
+      --muted: #59709a; --border: rgba(255,255,255,.68); --input-border: #c9d8f2;
+      --error: #ffe3eb; --success: #c9f4df; --radius: 12px; --card-radius: 24px;
+      --shadow: 0 20px 45px rgba(25,54,105,.22); --space: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-width: 320px; min-height: 100dvh; margin: 0; color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(circle at 12% 0%, rgba(255,255,255,.9), transparent 30rem), linear-gradient(145deg, var(--bg), var(--bg-deep));
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .skip-link { position:absolute; top:-60px; left:16px; z-index:20; padding:12px 16px; color:#fff; background:var(--navy); border-radius:var(--radius); }
+    .skip-link:focus { top:16px; }
+    .site-shell { width:min(1120px, calc(100% - 32px)); min-height:100dvh; margin:auto; padding:24px 0 48px; }
+    .site-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:32px; }
+    .brand { display:inline-flex; align-items:center; gap:12px; color:var(--navy); font-weight:800; text-decoration:none; letter-spacing:-.02em; }
+    .brand img { height:40px; width:auto; object-fit:contain; }
+    .storage-status { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; color:var(--navy); border:1px solid rgba(20,60,125,.14); border-radius:999px; background:rgba(255,255,255,.6); font-size:.82rem; font-weight:700; }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:#27a06c; }
+    main { outline:none; }
+    .screen { display:none; }
+    .screen.is-active { display:block; animation:reveal 220ms ease-out; }
+    .panel { padding:clamp(32px,7vw,64px); overflow:hidden; border:1px solid var(--border); border-radius:var(--card-radius); box-shadow:var(--shadow); background:linear-gradient(135deg, rgba(219,231,255,.86), rgba(125,156,211,.82)); backdrop-filter:blur(14px); }
+    .hero { display:grid; grid-template-columns:1.25fr .75fr; align-items:center; gap:40px; min-height:480px; }
+    .eyebrow { display:inline-block; margin:0 0 16px; padding:6px 10px; color:var(--navy); border:1px solid rgba(20,60,125,.2); border-radius:999px; background:rgba(255,255,255,.5); font-size:.78rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    h1,h2,p { margin-top:0; }
+    h1 { max-width:650px; margin-bottom:20px; color:#fff; font-size:clamp(2.5rem,6vw,4.75rem); line-height:.98; letter-spacing:-.06em; }
+    h2 { margin-bottom:12px; color:#fff; font-size:clamp(2rem,4vw,3.25rem); line-height:1.05; letter-spacing:-.045em; }
+    .lead { max-width:620px; margin:0; color:rgba(255,255,255,.94); font-size:clamp(1rem,2vw,1.2rem); line-height:1.6; }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:32px; }
+    .button { display:inline-flex; justify-content:center; align-items:center; min-height:48px; padding:0 20px; border:1px solid transparent; border-radius:var(--radius); font-weight:800; text-align:center; text-decoration:none; transition:transform 180ms ease, background 180ms ease, box-shadow 180ms ease; }
+    .button:hover { transform:translateY(-2px); }
+    .button:active { transform:none; }
+    .button:focus-visible,input:focus-visible,textarea:focus-visible { outline:3px solid rgba(20,60,125,.35); outline-offset:3px; }
+    .primary { color:var(--navy); background:#fff; box-shadow:0 8px 18px rgba(20,60,125,.2); }
+    .primary:hover { background:#f5f8ff; }
+    .secondary { color:#fff; border-color:rgba(255,255,255,.9); background:rgba(28,57,111,.1); }
+    .secondary:hover { background:rgba(255,255,255,.17); }
+    .dark { color:#fff; background:var(--navy); box-shadow:0 8px 18px rgba(20,60,125,.2); }
+    .dark:hover { background:var(--navy-dark); }
+    .hero-side { display:grid; gap:16px; }
+    .metric { padding:20px; color:#fff; border:1px solid rgba(255,255,255,.55); border-radius:20px; background:rgba(255,255,255,.16); }
+    .metric span { display:block; margin-bottom:8px; color:rgba(255,255,255,.75); font-size:.86rem; font-weight:700; }
+    .metric strong { display:block; font-size:2.5rem; line-height:1; }
+    .screen-header { max-width:660px; margin:0 auto 32px; text-align:center; }
+    .screen-header p:last-child { margin:0; color:rgba(255,255,255,.9); font-size:1.08rem; }
+    .form-card { max-width:720px; margin:auto; padding:clamp(20px,4vw,32px); border:1px solid rgba(255,255,255,.7); border-radius:20px; background:rgba(255,255,255,.14); }
+    .form-grid { display:grid; gap:20px; }
+    .field { display:grid; gap:8px; }
+    label { color:#fff; font-weight:800; }
+    input,textarea { width:100%; border:1px solid var(--input-border); border-radius:var(--radius); color:var(--text); background:#fff; box-shadow:0 4px 12px rgba(32,62,112,.08); }
+    input { min-height:52px; padding:0 16px; }
+    textarea { min-height:132px; padding:16px; resize:vertical; }
+    .hint { margin:0; color:rgba(255,255,255,.78); font-size:.88rem; }
+    .field-error { min-height:1.2em; margin:0; color:var(--error); font-size:.88rem; font-weight:700; }
+    .form-actions { justify-content:center; margin-top:24px; }
+    .notice { display:none; max-width:720px; margin:0 auto 20px; padding:12px 16px; border-radius:var(--radius); font-weight:700; }
+    .notice.is-visible { display:block; }
+    .notice.success { color:#063d28; background:var(--success); }
+    .notice.error { color:#6f102b; background:var(--error); }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; }
+    .count { margin:0; color:#fff; font-weight:700; }
+    .products { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); }
+    .product { display:grid; gap:12px; min-height:190px; padding:20px; border:1px solid rgba(255,255,255,.72); border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 10px 25px rgba(25,54,105,.12); }
+    .product h3 { margin:0; color:var(--navy); font-size:1.2rem; }
+    .product p { margin:0; color:var(--muted); line-height:1.5; }
+    .product-price { align-self:end; color:var(--navy)!important; font-size:1.3rem; font-weight:900; }
+    .empty { display:grid; place-items:center; min-height:220px; padding:32px; border:1px dashed rgba(255,255,255,.8); border-radius:20px; color:#fff; text-align:center; background:rgba(255,255,255,.12); }
+    .empty strong { font-size:1.2rem; }
+    .empty p { margin:8px 0 0; color:rgba(255,255,255,.86); }
+    .screen-footer { margin-top:32px; }
+    @keyframes reveal { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    @media (max-width:720px) {
+      .site-shell { width:min(100% - 24px,1120px); padding-top:16px; }
+      .site-header { margin-bottom:20px; }.brand img{height:32px}.storage-status{font-size:.72rem}
+      .panel { padding:32px 20px; border-radius:20px; }.hero{grid-template-columns:1fr;min-height:auto;gap:32px}.hero-side{grid-template-columns:repeat(2,1fr)}
+      .metric{padding:16px}.metric strong{font-size:2rem}.actions,.form-actions{display:grid;grid-template-columns:1fr}.button{width:100%}.toolbar{align-items:flex-start;flex-direction:column}
+    }
+    @media (max-width:420px) {.site-header{align-items:flex-start;flex-direction:column}.hero-side{grid-template-columns:1fr}}
+    @media (prefers-reduced-motion:reduce) {*{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+  </style>
 </head>
-
 <body>
+  <a class="skip-link" href="#main-content">Saltar al contenido</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio"><img src="logo_santo.png" alt="Santo Tomás"><span>Cloud Computing</span></a>
+      <span class="storage-status"><span class="status-dot" aria-hidden="true"></span>Datos guardados localmente</span>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <section id="inicio" class="screen is-active" aria-labelledby="home-title">
+        <div class="panel hero">
+          <div>
+            <p class="eyebrow">Computación en la Nube</p>
+            <h1 id="home-title">Tu primer sistema de productos.</h1>
+            <p class="lead">Registra productos y consulta el inventario desde una interfaz simple. En esta etapa, la información se almacena de forma segura en este navegador.</p>
+            <div class="actions"><a class="button primary" href="#registro">Registrar producto</a><a class="button secondary" href="#productos">Ver productos</a></div>
+          </div>
+          <aside class="hero-side" aria-label="Resumen del sistema">
+            <div class="metric"><span>Productos registrados</span><strong id="home-count">0</strong></div>
+            <div class="metric"><span>Almacenamiento actual</span><strong>Local</strong></div>
+          </aside>
+        </div>
+      </section>
+      <section id="registro" class="screen" aria-labelledby="register-title">
+        <div class="panel">
+          <header class="screen-header"><p class="eyebrow">Nuevo registro</p><h2 id="register-title">Registrar producto</h2><p>Completa los datos para guardarlo en la base local de este navegador.</p></header>
+          <div id="notice" class="notice" role="status" aria-live="polite"></div>
+          <form id="product-form" class="form-card" novalidate>
+            <div class="form-grid">
+              <div class="field"><label for="product-name">Nombre del producto</label><input id="product-name" name="name" type="text" placeholder="Ej.: Notebook Lenovo" maxlength="80" autocomplete="off" required><p id="name-error" class="field-error" aria-live="polite"></p></div>
+              <div class="field"><label for="product-description">Descripción</label><textarea id="product-description" name="description" placeholder="Describe brevemente el producto" maxlength="400" required></textarea><p class="hint">Máximo 400 caracteres.</p><p id="description-error" class="field-error" aria-live="polite"></p></div>
+              <div class="field"><label for="product-price">Precio</label><input id="product-price" name="price" type="number" placeholder="Ej.: 599990" min="0" step="1" inputmode="numeric" required><p class="hint">Ingresa el valor en pesos chilenos, sin puntos ni símbolos.</p><p id="price-error" class="field-error" aria-live="polite"></p></div>
+            </div>
+            <div class="actions form-actions"><button class="button primary" type="submit">Guardar producto</button><a class="button secondary" href="#productos">Ver productos</a><a class="button secondary" href="#inicio">Volver al inicio</a></div>
+          </form>
+        </div>
+      </section>
+      <section id="productos" class="screen" aria-labelledby="products-title">
+        <div class="panel">
+          <header class="screen-header"><p class="eyebrow">Inventario</p><h2 id="products-title">Productos registrados</h2><p>Listado de productos almacenados en el sistema.</p></header>
+          <div class="toolbar"><p id="products-count" class="count" aria-live="polite">0 productos registrados</p><a class="button primary" href="#registro">Agregar producto</a></div>
+          <div id="products-list" class="products" aria-live="polite"></div>
+          <footer class="screen-footer actions"><a class="button secondary" href="#inicio">Volver al inicio</a></footer>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    (() => {
+      const STORAGE_KEY = "paginaCompNube.products.v1";
+      const screens = document.querySelectorAll(".screen");
+      const form = document.querySelector("#product-form");
+      const notice = document.querySelector("#notice");
+      const list = document.querySelector("#products-list");
+      const count = document.querySelector("#products-count");
+      const homeCount = document.querySelector("#home-count");
 
-    <!-- Logo Santo Tomás -->
-    <div class="logo-container">
-        <img 
-            src="logo_santo.png" 
-            alt="Logo Santo Tomás" 
-            class="logo"
-        >
-    </div>
-
-    <h1>Cloud Computing</h1>
-
-    <h2>Mi primer sistema Cloud</h2>
-
-    <p>
-        Sistema creado en la asignatura Computación en la Nube
-        del Instituto Profesional Santo Tomás
-    </p>
-
-    <button>Ingresar al sistema</button>
-
+      // Reemplaza estos dos métodos por Firebase, Supabase o Google Sheets cuando se migre a la nube.
+      const repository = {
+        getAll() { try { const items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); return Array.isArray(items) ? items : []; } catch { return []; } },
+        save(product) { const items = this.getAll(); items.unshift(product); localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+      };
+      const el = (tag, className, text) => { const item = document.createElement(tag); if (className) item.className = className; if (text) item.textContent = text; return item; };
+      const formatPrice = price => new Intl.NumberFormat("es-CL", {style:"currency",currency:"CLP",maximumFractionDigits:0}).format(price);
+      function renderProducts() {
+        const products = repository.getAll(); const total = products.length;
+        count.textContent = `${total} ${total === 1 ? "producto registrado" : "productos registrados"}`;
+        homeCount.textContent = total; list.replaceChildren();
+        if (!total) { const empty = el("div", "empty"); empty.append(el("strong", "", "Aún no hay productos registrados."), el("p", "", "Comienza agregando el primer producto al sistema.")); list.append(empty); return; }
+        products.forEach(product => { const card = el("article", "product"); card.append(el("h3", "", product.name), el("p", "", product.description), el("p", "product-price", formatPrice(product.price))); list.append(card); });
+      }
+      function showNotice(message, type) { notice.textContent = message; notice.className = `notice is-visible ${type}`; }
+      function clearErrors() { ["name","description","price"].forEach(field => document.querySelector(`#${field}-error`).textContent = ""); }
+      function navigate() {
+        const requested = location.hash.slice(1) || "inicio"; const target = document.getElementById(requested) ? requested : "inicio";
+        screens.forEach(screen => screen.classList.toggle("is-active", screen.id === target)); renderProducts();
+        document.title = target === "registro" ? "Registrar producto | Cloud Computing" : target === "productos" ? "Productos registrados | Cloud Computing" : "Cloud Computing | Productos";
+        document.querySelector("#main-content").focus({preventScroll:true});
+      }
+      form.addEventListener("submit", event => {
+        event.preventDefault(); clearErrors(); notice.className = "notice";
+        const name = form.elements.name.value.trim(); const description = form.elements.description.value.trim(); const priceText = form.elements.price.value.trim(); const price = Number(priceText); let invalid = null;
+        if (name.length < 2) { document.querySelector("#name-error").textContent = "Ingresa un nombre de al menos 2 caracteres."; invalid ??= form.elements.name; }
+        if (description.length < 8) { document.querySelector("#description-error").textContent = "Agrega una descripción de al menos 8 caracteres."; invalid ??= form.elements.description; }
+        if (!priceText || !Number.isFinite(price) || price < 0) { document.querySelector("#price-error").textContent = "Ingresa un precio válido igual o mayor que cero."; invalid ??= form.elements.price; }
+        if (invalid) { showNotice("Revisa los campos marcados antes de guardar el producto.", "error"); invalid.focus(); return; }
+        try { repository.save({id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), name, description, price, createdAt:new Date().toISOString()}); form.reset(); showNotice("Producto guardado correctamente en la base local.", "success"); renderProducts(); }
+        catch { showNotice("No pudimos guardar el producto. Verifica que el almacenamiento local esté disponible.", "error"); }
+      });
+      window.addEventListener("hashchange", navigate); navigate();
+    })();
+  </script>
 </body>
 </html>
